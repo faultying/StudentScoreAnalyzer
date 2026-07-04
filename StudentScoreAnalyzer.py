@@ -3,19 +3,21 @@
 能按照多种条件，对不同学校、年级、班级等进行对比分析，操作简便，适合学校、教师、培训机构等教学活动总结分析使用。
 功能需求：
 1. 支持学生成绩文件的导入。能方便的导入各个学生的单科考试成绩数据。学生成绩文件可以是纯文本文件。
-2. 计算输出各个学生的各科总分、平均分、绩点、标准差和方差（此版本未实现）
+2. 计算输出各个学生的各科总分、平均分、绩点（若分数大于等于60，绩点为（分数-60）/10，若分数小于60绩点则为0）、标准差和方差
 3. 计算输出各班级各科最高分、最低分、平均分、优秀率、及格率、不及格率
 4. 绘制相关统计分析图表（柱状图、饼状图）
 """
 import matplotlib
+
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+
 plt.rcParams['font.sans-serif'] = ['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 from pandas import Series
 
 
-def main() :
+def main():
     print("输入文件类型 0为txt 1为csv")
     try:
         file_type = int(input())
@@ -33,11 +35,12 @@ def main() :
         print("没有加载到数据")
         return
 
-
     calscore(data, stucount, file_type, max, "最高成绩")
     calscore(data, stucount, file_type, min, "最低成绩")
-    calscore(data, stucount, file_type,lambda scores: sum(scores) / len(scores), "平均成绩")
-    scselect(data,stucount,file_type)
+    calscore(data, stucount, file_type, lambda scores: sum(scores) / len(scores), "平均成绩")
+    calgpa(data, stucount, file_type)
+    calbzc(data, stucount, file_type)
+    scselect(data, stucount, file_type)
 
 
 def calscore(data, stucount, file_type, func, funcname):
@@ -55,6 +58,52 @@ def calscore(data, stucount, file_type, func, funcname):
         scores = [float(data[i][0]) for i in range(stucount)]
         res = func(scores)
         print(f"{funcname}: {res}")
+
+
+def calgpa(data, stucount, file_type):
+    """
+    Function:
+        计算每个学生的平均绩点（60分以下绩点为0，80分=2.0，线性换算）
+    """
+    if file_type == 1:
+        for i in range(stucount):
+            scores = [float(data[i][j]) for j in range(1, len(data[i]))]
+            total = 0
+            for s in scores:
+                if s >= 60:
+                    total += (s - 60) / 10
+            avg = total / len(scores)
+            print(f"学生{i + 1} 平均绩点: {avg:.2f}")
+    else:
+        for i in range(stucount):
+            score = float(data[i][0])
+            if score >= 60:
+                gpa = (score - 60) / 10
+            else:
+                gpa = 0
+            print(f"学生{i + 1} 绩点: {gpa:.2f}")
+
+
+def calbzc(data, stucount, file_type):
+    """
+    Function:
+        计算每个学生的成绩方差和标准差（方差的算术平方根）
+    """
+    if file_type == 1:
+        for i in range(stucount):
+            scores = [float(data[i][j]) for j in range(1, len(data[i]))]
+            avg = sum(scores) / len(scores)
+            fc = sum((s - avg) ** 2 for s in scores) / len(scores)
+            print(f"学生{i + 1} 成绩方差: {fc:.2f}")
+            bzc = fc ** 0.5
+            print(f"学生{i + 1} 成绩标准差: {bzc:.2f}")
+    else:
+        scores = [float(data[i][0]) for i in range(stucount)]
+        avg = sum(scores) / len(scores)
+        fc = sum((s - avg) ** 2 for s in scores) / len(scores)
+        print(f"成绩方差: {fc:.2f}")
+        bzc = fc ** 0.5
+        print(f"成绩标准差: {bzc:.2f}")
 
 
 def scselect(data, stucount, file_type):
@@ -76,7 +125,7 @@ def scselect(data, stucount, file_type):
         pie(level)
 
 
-def sclevels(data,stucount,exam) :
+def sclevels(data, stucount, exam):
     """
     Function:
         统计指定列的各分数段人数（0-20, 21-40, 41-60, 61-80, 81-100）
@@ -101,7 +150,7 @@ def sclevels(data,stucount,exam) :
     return level_a, level_b, level_c, level_d, level_e
 
 
-def sctable(level, stucount) :
+def sctable(level, stucount):
     """
     Function:
         打印成绩等级统计表（优秀率、良好率、不及格率）
