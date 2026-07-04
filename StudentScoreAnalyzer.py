@@ -33,10 +33,28 @@ def main() :
         print("没有加载到数据")
         return
 
-    maxscore(data,stucount,file_type)
-    minscore(data,stucount,file_type)
-    avescore(data,stucount,file_type)
+
+    calscore(data, stucount, file_type, max, "最高成绩")
+    calscore(data, stucount, file_type, min, "最低成绩")
+    calscore(data, stucount, file_type,lambda scores: sum(scores) / len(scores), "平均成绩")
     scselect(data,stucount,file_type)
+
+
+def calscore(data, stucount, file_type, func, funcname):
+    """
+    Function:
+        通用计算函数，根据文件类型遍历各次考试，调用 func 计算并输出结果
+    注：重构后的高阶函数，提取出公共逻辑，通过 func 参数实现不同计算
+    """
+    if file_type == 1:
+        for exam in range(len(data[0]) - 1):
+            scores = [float(data[i][exam + 1]) for i in range(stucount)]
+            res = func(scores)
+            print(f"{exam}次考试{funcname}: {res}")
+    else:
+        scores = [float(data[i][0]) for i in range(stucount)]
+        res = func(scores)
+        print(f"{funcname}: {res}")
 
 
 def scselect(data, stucount, file_type):
@@ -56,57 +74,6 @@ def scselect(data, stucount, file_type):
         sctable(level, stucount)
         bar(level, stucount)
         pie(level)
-def maxscore(data,stucount, file_type):
-    """
-    Function:
-        根据文件类型计算并输出各次考试的最高成绩学生信息
-    """
-    if file_type == 1:
-        for exam in range(len(data[0]) - 1):
-            print(f"{exam} 次考试成绩概况")
-            print("最高成绩学生信息为")
-            scores = [float(data[i][exam + 1]) for i in range(stucount)]
-            maxsco = max(scores)
-            for stuidx in range(stucount):
-                if float(data[stuidx][exam + 1]) == maxsco:
-                    print(data[stuidx])
-    else:
-        maxsco = max(data, key=lambda x: float(x[0]))
-        print(f"最高成绩为 {maxsco[0]}")
-
-def minscore(data,stucount, file_type):
-    """
-    Function:
-        根据文件类型计算并输出各次考试的最低成绩学生信息
-    """
-    if file_type == 1:
-        for exam in range(len(data[0]) - 1):
-            print(f"{exam} 次考试成绩概况")
-            print("最低成绩学生信息为")
-            scores = [float(data[i][exam + 1]) for i in range(stucount)]
-            minsco = min(scores)
-            for stuidx in range(stucount):
-                if float(data[stuidx][exam + 1]) == minsco:
-                    print(data[stuidx])
-    else:
-        minsco = min(data, key=lambda x: float(x[0]))
-        print(f"最低成绩为 {minsco[0]}")
-
-
-def avescore(data, stucount, file_type):
-    """
-    Function:
-        根据文件类型计算并输出各次考试的平均成绩
-    """
-    if file_type == 1:
-        for exam in range(len(data[0]) - 1):
-            total = sum(float(data[i][exam + 1]) for i in range(stucount))
-            ave = total / stucount
-            print(f"平均成绩为 {ave:.2f}")
-    else:
-        total = sum(float(data[i][0]) for i in range(stucount))
-        ave = total / stucount
-        print(f"平均成绩为 {ave:.2f}")
 
 
 def sclevels(data,stucount,exam) :
